@@ -286,36 +286,40 @@ export class ProjectDownloads extends React.Component {
       ];
       if (this.state.type == 'xls' || this.state.type == 'csv') {
         // HACK HACK HACK //
-        url = `/exports/`; // TODO: have the backend pass the URL in the asset
-        let postData = {
-          async: false, // TODO: don't do this; poll for task completion
-          source: this.props.asset.url,
-          type: this.state.type,
-          lang: this.state.lang,
-          hierarchy_in_labels: this.state.hierInLabels,
-          group_sep: this.state.groupSep,
-        };
-        $.ajax({
-          method: 'POST',
-          url: url,
-          data: postData
-        }).then((data) => {
-          notify(t('Your export is processing.'));
-          $.ajax({url: data.url}).then((taskData) => {
-            if(!!taskData.result) {
-              redirectTo(taskData.result);
-            } else {
-              alertify.error(t('Failed to retrieve the export.'));
-              log('export result invalid', taskData);
-            }
-          }).fail((taskFail) => {
-            alertify.error(t('Failed to retrieve the export task.'));
-            log('export task retrieval failed', taskFail);
+        if (window.location.href.endsWith('export-test')) {
+          // magic `export-test` in URL tells us to crudely test the new
+          // KPI-formpack backend, redirecting the user to the raw ExportTask
+          // detail view API. From there, they can refresh until the export is
+          // complete
+          url = `/exports/`; // TODO: have the backend pass the URL in the asset
+          let postData = {
+            async: true,
+            source: this.props.asset.url,
+            type: this.state.type,
+            lang: this.state.lang,
+            hierarchy_in_labels: this.state.hierInLabels,
+            group_sep: this.state.groupSep,
+          };
+          $.ajax({
+            method: 'POST',
+            url: url,
+            data: postData
+          }).then((data) => {
+            notify(t('Your export is processing.'));
+            redirectTo(data.url);
+          }).fail((failData) => {
+            alertify.error(t('Failed to create the export.'));
+            log('export creation failed', failData);
           });
-        }).fail((failData) => {
-          alertify.error(t('Failed to create the export.'));
-          log('export creation failed', failData);
-        });
+        } else {
+          // no magic word in the URL; use the old KC-formpack backend
+          let params = $.param({
+            lang: this.state.lang,
+            hierarchy_in_labels: this.state.hierInLabels,
+            group_sep: this.state.groupSep,
+          });
+          redirectTo(`${url}?${params}`);
+        }
         ////////////////////
       } else {
         redirectTo(url);
