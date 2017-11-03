@@ -282,7 +282,6 @@ export class ProjectDownloads extends React.Component {
   groupSepChange (e) {this.handleChange(e, 'groupSep');}
   handleSubmit (e) {
     e.preventDefault();
-    var _this = this;
 
     if (this.state.type.indexOf('_legacy') < 0) {
       let url = this.props.asset.deployment__data_download_links[
@@ -303,15 +302,12 @@ export class ProjectDownloads extends React.Component {
           data: postData
         }).done((data) => {
           $.ajax({url: data.url}).then((taskData) => {
-            // Start a polling Interval if export is not yet complete
             if (taskData.status !== 'complete') {
               notify(t('Your export is processing.'));
-              _this.pollingInterval  = setInterval(_this.refreshExport, 3000, taskData.url);
-              this.getExports();
             } else {
               redirectTo(taskData.result);
-              this.getExports();
             }
+            this.getExports();
           }).fail((taskFail) => {
             alertify.error(t('Failed to retrieve the export task.'));
             log('export task retrieval failed', taskFail);
@@ -340,19 +336,29 @@ export class ProjectDownloads extends React.Component {
 
   refreshExport(url) {
     $.ajax({url: url}).then((taskData) => {
-      if (taskData.status !== 'processing') {
-        clearInterval(this.pollingInterval);
+      if (taskData.status !== 'created' && taskData.status !== 'processing') {
         this.getExports();
       }
-    }).fail((taskFail) => {
-      clearInterval(this.pollingInterval);
     });
   }
 
   getExports() {
+    var _this = this;
+    clearInterval(this.pollingInterval);
+
     dataInterface.getAssetExports(this.props.asset.uid).done((data)=>{
       if (data.count > 0) {
         this.setState({exports: data.results.reverse()});
+
+        // Start a polling Interval if there is at least one export is not yet complete
+        data.results.every(function(item){
+          if(item.status === 'created' || item.status === 'processing'){
+            _this.pollingInterval  = setInterval(_this.refreshExport, 4000, item.url);
+             return false;
+          } else {
+            return true;
+          }
+        });
       } else {
         this.setState({exports: false});
       }
@@ -451,6 +457,8 @@ export class ProjectDownloads extends React.Component {
                   <bem.FormView__group m={['items', 'headings']}>
                     <bem.FormView__label m='type'>{t('Type')}</bem.FormView__label>
                     <bem.FormView__label m='date'>{t('Created')}</bem.FormView__label>
+                    <bem.FormView__label m='lang'>{t('Language')}</bem.FormView__label>
+                    <bem.FormView__label m='include-groups'>{t('Include Groups')}</bem.FormView__label>
                     <bem.FormView__label></bem.FormView__label>
                   </bem.FormView__group>
                   {this.state.exports.map((item, n) => {
@@ -462,10 +470,16 @@ export class ProjectDownloads extends React.Component {
                         <bem.FormView__label m='date'>
                           {formatTime(item.date_created)}
                         </bem.FormView__label>
+                        <bem.FormView__label m='lang'>
+                        {item.data.lang === "_default" ? t('Default') : item.data.lang}
+                        </bem.FormView__label>
+                        <bem.FormView__label m='include-groups'>
+                          {item.data.hierarchy_in_labels === "false" ? t('No') : t("Yes")}
+                        </bem.FormView__label>
                         <bem.FormView__label m='action'>
                           {item.status == 'complete' &&
-                            <a className="mdl-button mdl-button--raised mdl-button--colored" href={item.result}>
-                              {t('Download')}
+                            <a className="form-view__link" href={item.result} data-tip={t('Download')}>
+                              <i className="k-icon-download" />
                             </a>
                           }
                           {item.status == 'error' &&
