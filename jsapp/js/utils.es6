@@ -216,3 +216,57 @@ export function validFileTypes() {
   ];
   return VALID_ASSET_UPLOAD_FILE_TYPES.join(',');
 }
+
+export function koboMatrixParser(params) {
+  if (params.content)
+    var content = JSON.parse(params.content);
+  if (params.source)
+    var content = JSON.parse(params.source);
+
+  if (!content.survey)
+    return params;
+
+  var hasMatrix = false;
+
+  // add open/close tags for kobomatrix groups
+  content.survey.forEach(function(s, i){
+    if (s.type === 'kobomatrix') {
+      s.type = 'begin_kobomatrix';
+      s.appearance = 'field-list';
+      content.survey.splice(i + 1, 0, {type: "end_kobomatrix", "$kuid": `/${s.$kuid}`});
+    }
+  });
+
+  // add columns as items in the group
+  content.survey.forEach(function(s, i){
+    if (s.type === 'begin_kobomatrix') {
+      var j = i;
+      hasMatrix = true;
+      var matrix = localStorage.getItem(`koboMatrix.${s.$kuid}`);
+
+      if (matrix != null) {
+        matrix = JSON.parse(matrix);
+        for (var kuid of matrix.cols) {
+          j++;
+          content.survey.splice(j, 0, matrix[kuid]);
+        }
+
+        for (var k of Object.keys(matrix.choices)) {
+          content.choices.push(matrix.choices[k]);
+        }
+      }
+    }
+  });
+
+  if (hasMatrix) {
+    if(content.settings.length && content.settings[0].style != 'theme-grid') {
+      notify(t('Forms with a "Question Matrix" only work correctly using Enketo Webforms in the Grid style. Click on Layout in the toolbar and choose Grid Theme.'));
+    }
+
+    if (params.content)
+      params.content = JSON.stringify(content);
+    if (params.source)
+      params.source = JSON.stringify(content);
+  }
+  return params;
+}

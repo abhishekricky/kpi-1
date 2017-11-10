@@ -8,6 +8,7 @@ $viewTemplates = require './view.templates'
 $viewUtils = require './view.utils'
 $viewChoices = require './view.choices'
 $viewRowDetail = require './view.rowDetail'
+renderKobomatrix = require('js/formbuild/renderInBackbone').renderKobomatrix
 _t = require('utils').t
 
 module.exports = do ->
@@ -241,6 +242,34 @@ module.exports = do ->
       ,
       transformFunction: (value) -> value
 
+  class KoboMatrixView extends RowView
+    className: "survey__row survey__row--kobo-matrix"
+    _expandedRender: ->
+      super()
+      @$('.xlf-dv-required').hide()
+      @$('.xlf-dv-kobo--matrix_list').hide()
+      @$("li[data-card-settings-tab-id='validation-criteria']").hide()
+      @$("li[data-card-settings-tab-id='skip-logic']").hide()
+    _renderRow: ->
+      @$el.html $viewTemplates.row.koboMatrixView()
+      @matrix = @$('.card__kobomatrix')
+      renderKobomatrix(@, @matrix)
+      @$label = @$('.card__header-title')
+      @$card = @$('.card')
+      @$header = @$('.card__header')
+      context = {warnings: []}
+
+      for [key, val] in @model.attributesArray() when key is 'label' or key is 'type'
+        view = new $viewRowDetail.DetailView(model: val, rowView: @)
+        if key == 'label' and @model.get('type').get('value') == 'calculate'
+          view.model = @model.get('calculation')
+          @model.finalize()
+          val.set('value', '')
+        view.render().insertInDOM(@)
+        if key == 'label'
+          @make_label_editable(view)
+      @
+
   class RankScoreView extends RowView
     _expandedRender: ->
       super()
@@ -306,7 +335,6 @@ module.exports = do ->
         @already_rendered = false
         @render(fixScroll: true)
       offOn 'click.deletescorecol', '.js-delete-scorecol', (evt)=>
-        log 'here'
         $et = $(evt.target)
         @model._scoreChoices.options.remove(get_choice($et.closest('th').data('cid')))
         @already_rendered = false
@@ -342,7 +370,6 @@ module.exports = do ->
       offOn 'keyup.namekey', '.scorelabel__edit', (evt)=>
         $ect = $(evt.currentTarget)
         $nameWrap = $ect.closest('.scorelabel').find('.scorelabel__name')
-        log $nameWrap
         $nameWrap.attr('data-automatic-name', $modelUtils.sluggify($ect.text(), validXmlTag: true))
 
       offOn 'input.choicechange', '.scorecell__label', (evt)=>
@@ -507,5 +534,6 @@ module.exports = do ->
 
   RowView: RowView
   ScoreView: ScoreView
+  KoboMatrixView: KoboMatrixView
   GroupView: GroupView
   RankView: RankView
