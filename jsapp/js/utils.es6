@@ -259,7 +259,7 @@ export function koboMatrixParser(params) {
   });
 
   if (hasMatrix) {
-    if(content.settings.length && content.settings[0].style != 'theme-grid') {
+    if(content.settings.length && !content.settings[0].style.includes('theme-grid')) {
       notify(t('Forms with a "Question Matrix" only work correctly using Enketo Webforms in the Grid style. Click on Layout in the toolbar and choose Grid Theme.'));
     }
 
