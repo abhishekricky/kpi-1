@@ -177,8 +177,8 @@ module.exports = do ->
         if key in ["name", "_isRepeat", "appearance", "relevant"] or key.match(/^label::/)
           new $viewRowDetail.DetailView(model: val, rowView: @).render().insertInDOM(@)
 
-      if @hasNestedGroups()
-        @$('.xlf-dv-appearance').hide()
+      # if @hasNestedGroups()
+      #   @$('.xlf-dv-appearance').hide()
 
       @model.on 'add', (row) =>
         if row.constructor.key == 'group'
