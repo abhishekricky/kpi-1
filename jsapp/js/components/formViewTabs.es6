@@ -67,9 +67,6 @@ class FormViewTabs extends Reflux.Component {
           activeClassName='active'>
           {t('Form')}
         </Link>
-        <bem.FormView__tab className="is-edge" m='summary'>
-          {t('Summary')}
-        </bem.FormView__tab>
         { this.state.asset && this.state.asset.deployment__identifier != undefined && this.state.asset.has_deployment && this.state.asset.deployment__submission_count > 0 && 
           <Link 
             to={`/forms/${this.state.assetid}/data`}

@@ -379,10 +379,15 @@ var dataInterface;
       if (sort.length)
         s = sort[0].desc === true ? `&sort={"${sort[0].id}":-1}` : `&sort={"${sort[0].id}":1}`;
       if (fields.length)
-        f = `&fields=${JSON.stringify(fields)}`;
-      
+        f = `&fields=${JSON.stringify(fields)}`;  
       return $ajax({
         url: `${rootUrl}/assets/${uid}/submissions?${query}${s}${f}`,
+        method: 'GET'
+      });
+    },
+    getSubmissionsQuery(uid, query='') {
+      return $ajax({
+        url: `${rootUrl}/assets/${uid}/submissions?${query}`,
         method: 'GET'
       });
     },

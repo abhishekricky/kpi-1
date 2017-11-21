@@ -286,7 +286,8 @@ export var routes = (
           <Route path="gallery" component={FormSubScreens} />
           <Route path="map" component={FormSubScreens} />
           <Route path="map/:viewby" component={FormSubScreens} />
-          <IndexRedirect to="report" />
+          <Route path="summary" component={FormSubScreens} />
+          <IndexRedirect to="summary" />
         </Route>
 
         <Route path="settings">

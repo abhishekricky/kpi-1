@@ -22,6 +22,7 @@ import {
 } from '../components/formEditors';
 
 import FormMap from '../components/map';
+import Summary from '../components/summary';
 
 import {
   assign,
@@ -72,6 +73,9 @@ export class FormSubScreens extends React.Component {
           break;
         case `/forms/${this.state.uid}/data/map`:
           return <FormMap asset={this.state} />;
+          break;
+        case `/forms/${this.state.uid}/data/summary`:
+          return <Summary asset={this.state} />;
           break;
         case `/forms/${this.state.uid}/data/map/${this.props.params.viewby}`:
           return <FormMap asset={this.state} viewby={this.props.params.viewby}/>;

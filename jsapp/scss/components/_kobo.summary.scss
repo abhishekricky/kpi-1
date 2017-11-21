@@ -1,0 +1,56 @@
+.form-view--summary {
+  .form-view__group--description-cols {
+    padding: 20px;
+
+    > .form-view__cell {
+      width: 50%;
+
+      .form-view__label {
+        font-size: 12px;
+        opacity: 0.6;
+      }
+    }
+  }
+
+  .form-view__cell--description {
+    border-top: 1px solid $divider-color;
+    padding: 20px;
+  }
+
+  .form-view__group--summary-details-cols {
+    padding: 20px;
+
+    > .form-view__cell {
+      width: 33.3%;
+
+      .form-view__label {
+        font-size: 12px;
+        opacity: 0.6;
+      }
+    }
+  }
+
+  .form-view__cell--subs-graph {
+    padding: 30px;
+    padding-bottom: 0px;
+  }
+
+  .form-view__group--submission-stats {
+    padding: 30px;
+    display: flex;
+    justify-content: space-between;
+
+    .form-view__cell {
+      background: #F8F8FA;
+      padding: 20px;
+      flex: 1;
+      margin: 0px 20px;
+    }
+
+    .subs-graph-number {
+      font-size: 32px;
+      font-weight: 600;
+      color: $cool-green;
+    }
+  }
+}

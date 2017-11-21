@@ -142,7 +142,6 @@ bem.FormTitle = BEM('form-title');
 bem.FormTitle__name = bem.FormTitle.__('name');
 bem.FormTitle__submissions = bem.FormTitle.__('submissions');
 
-
 bem.ReportView = BEM('report-view');
 bem.ReportView__wrap = bem.ReportView.__('wrap');
 bem.ReportView__warning = bem.ReportView.__('warning');
