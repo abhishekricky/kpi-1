@@ -16,6 +16,8 @@ import mixins from '../mixins';
 import DocumentTitle from 'react-document-title';
 import CopyToClipboard from 'react-copy-to-clipboard';
 import $ from 'jquery';
+import {dataInterface} from '../dataInterface';
+import Summary from '../components/summary';
 
 import {
   formatTime,
@@ -32,9 +34,13 @@ export class FormLanding extends React.Component {
     super(props);
     this.state = {
       questionLanguageIndex: 0,
-      selectedCollectMethod: 'offline_url'
+      selectedCollectMethod: 'offline_url',
+      lastSubmission: false
     };
     autoBind(this);
+  }
+  componentDidMount() {
+    this.getLatestSubmissionTime();
   }
   componentWillReceiveProps() {
     this.setState({
@@ -51,31 +57,22 @@ export class FormLanding extends React.Component {
   }
   renderFormInfo () {
     var dvcount = this.state.deployed_versions.count;
-    var undeployedVersion = undefined;
 
-    if (this.state.deployed_version_id !== this.state.version_id && this.state.deployment__active) {
-      undeployedVersion = `(${t('undeployed')})`;
-      dvcount = dvcount + 1;
-    }
+    // var undeployedVersion = undefined;
+    // if (this.state.deployed_version_id !== this.state.version_id && this.state.deployment__active) {
+    //   undeployedVersion = `(${t('undeployed')})`;
+    //   dvcount = dvcount + 1;
+    // }
     return (
         <bem.FormView__cell m={['columns', 'padding']}>
           <bem.FormView__cell>
-            <bem.FormView__cell m='version'>
-              {dvcount > 0 ? `v${dvcount}` : ''}
-            </bem.FormView__cell>
-            {undeployedVersion && 
-              <bem.FormView__cell m='undeployed'>
-                &nbsp;{undeployedVersion}
+            {this.state.deployed_versions.count > 0 &&
+              this.state.deployed_version_id != this.state.version_id && this.state.deployment__active && 
+              <bem.FormView__cell m='warning'>
+                <i className="k-icon-alert" />
+                <span>{t('Your form has undeployed changes. If you want to make these changes public, you must deploy this form.')}</span>
               </bem.FormView__cell>
             }
-            <bem.FormView__cell m='date'>
-              {t('Last Modified')}&nbsp;:&nbsp;
-              {formatTime(this.state.date_modified)}&nbsp;-&nbsp;
-              <span className="question-count">
-                {this.state.summary.row_count || '0'}&nbsp;
-                {t('questions')}
-                </span>
-            </bem.FormView__cell>
           </bem.FormView__cell>
           <bem.FormView__cell m='buttons'>
             {this.state.userCanEdit && 
@@ -91,13 +88,15 @@ export class FormLanding extends React.Component {
   }
   renderFormLanguages () {
     return (
-      <bem.FormView__cell m={['padding', 'bordertop', 'languages']}>
-        {t('Languages')}
+      <bem.FormView__cell m={['languages']}>
+        <bem.FormView__cell m='thin-label'>
+          {t('Languages')}
+        </bem.FormView__cell>
         {this.state.summary.languages.map((l, i)=>{
           return (
               <bem.FormView__cell key={`lang-${i}`} m='langButton' 
-                className={this.state.questionLanguageIndex == i ? 'active' : ''}
-                onClick={this.updateQuestionListLanguage}
+                // className={this.state.questionLanguageIndex == i ? 'active' : ''}
+                // onClick={this.updateQuestionListLanguage}
                 data-index={i}>
                 {l}
               </bem.FormView__cell>
@@ -107,13 +106,13 @@ export class FormLanding extends React.Component {
       </bem.FormView__cell>
     );
   }
-  updateQuestionListLanguage (evt) {
-    let i = evt.currentTarget.dataset.index;
-    this.setState({
-        questionLanguageIndex: i
-      }
-    );
-  }
+  // updateQuestionListLanguage (evt) {
+  //   let i = evt.currentTarget.dataset.index;
+  //   this.setState({
+  //       questionLanguageIndex: i
+  //     }
+  //   );
+  // }
   sharingModal (evt) {
     evt.preventDefault();
     stores.pageState.showModal({
@@ -379,6 +378,99 @@ export class FormLanding extends React.Component {
         </bem.FormView__group>
       );
   }
+  getLatestSubmissionTime() {
+    const fq = ['_id', '_submission_time'];
+    const sort = [{id: '_id', desc: true}];
+    dataInterface.getSubmissions(this.props.params.assetid, 1, 0, sort, fq).done((data) => {
+      this.setState({lastSubmission: data[0]['_submission_time']});
+    });
+  }
+  renderFormDetails () {
+    return (
+      <bem.FormView__cell m={['form-details']}>
+        <bem.FormView__cell>
+          <bem.FormView__cell m='thin-label'>
+            {t('Last modified')}
+          </bem.FormView__cell>
+          <bem.FormView__cell>
+            {formatTime(this.state.date_modified)}
+          </bem.FormView__cell>
+        </bem.FormView__cell>
+        {this.state.lastSubmission &&
+          <bem.FormView__cell>
+            <bem.FormView__cell m='thin-label'>
+              {t('Last submission')}
+            </bem.FormView__cell>
+            <bem.FormView__cell>
+              {formatTime(this.state.lastSubmission)}
+            </bem.FormView__cell>
+          </bem.FormView__cell>
+        }
+        <bem.FormView__cell m={['questions']}>
+          <bem.FormView__cell m='thin-label'>
+            {t('Questions')}
+          </bem.FormView__cell>
+          <bem.FormView__cell>
+            {this.state.summary.row_count || '0'}
+          </bem.FormView__cell>
+        </bem.FormView__cell>
+        {this.state.summary && this.state.summary.languages && this.state.summary.languages[0] != null && 
+          <bem.FormView__cell m={['languages']}>
+            <bem.FormView__cell m='thin-label'>
+              {t('Languages')}
+            </bem.FormView__cell>
+            {this.state.summary.languages.map((l, i)=>{
+              return (
+                  <bem.FormView__cell key={`lang-${i}`} m='langButton' 
+                    // className={this.state.questionLanguageIndex == i ? 'active' : ''}
+                    // onClick={this.updateQuestionListLanguage}
+                    data-index={i}>
+                    {l}
+                  </bem.FormView__cell>
+                );
+            })}
+          </bem.FormView__cell>
+        }
+
+      </bem.FormView__cell>
+    );
+  }
+  renderDataTabs() {
+    var sideTabs = [];
+
+    if (this.state.has_deployment) {
+      sideTabs = [
+        {label: t('Reports'), icon: 'k-icon-report', path: `/forms/${this.state.uid}/data/report`},
+        {label: t('Reports (legacy)'), icon: 'k-icon-report', path: `/forms/${this.state.uid}/data/report-legacy`, className: 'is-edge'},
+        {label: t('Table'), icon: 'k-icon-table', path: `/forms/${this.state.uid}/data/table`},
+        {label: t('Gallery'), icon: 'k-icon-photo-gallery', path: `/forms/${this.state.uid}/data/gallery`},
+        {label: t('Downloads'), icon: 'k-icon-download', path: `/forms/${this.state.uid}/data/downloads`},
+        {label: t('Map'), icon: 'k-icon-map-view', path: `/forms/${this.state.uid}/data/map`},
+      ];
+    }
+
+    if (sideTabs.length > 0) {
+      return (
+        <bem.FormView__cell m='data-tabs'> 
+          { sideTabs.map((item, ind) => 
+            <Link 
+              to={item.path}
+              key={ind} 
+              activeClassName='active'
+              onlyActiveOnIndex={true}
+              className={`form-view__tab ${item.className || ''}`}
+              data-path={item.path}
+              onClick={this.triggerRefresh}>
+                <i className={item.icon} />
+                {item.label}
+                <i className={'fa fa-angle-right'} />
+            </Link>
+          )}
+        </bem.FormView__cell>
+      );
+    }
+    return false;    
+  }
   render () {
     var docTitle = this.state.name || t('Untitled');
 
@@ -394,41 +486,59 @@ export class FormLanding extends React.Component {
         </ui.Panel>
       );
     }
+    var dvcount = this.state.deployed_versions.count;
 
     return (
       <DocumentTitle title={`${docTitle} | KoboToolbox`}>
         <bem.FormView m='form'>
-          <bem.FormView__row>
-            <bem.FormView__cell m={['columns', 'first']}>
-              <bem.FormView__cell m='label'>
-                {this.state.deployment__active ? t('Current version') :
-                  this.state.has_deployment ? t('Archived version') :
-                    t('Draft version')}
-              </bem.FormView__cell>
-              <bem.FormView__cell>
-                {this.renderButtons()}
-              </bem.FormView__cell>
-            </bem.FormView__cell>
-            <bem.FormView__cell m='box'>
-              {this.state.deployed_versions.count > 0 &&
-                this.state.deployed_version_id != this.state.version_id && this.state.deployment__active && 
-                <bem.FormView__cell m='warning'>
-                  <i className="k-icon-alert" />
-                  {t('If you want to make these changes public, you must deploy this form.')}
+          <bem.FormView__column m='left'>
+            <bem.FormView__row>
+              <bem.FormView__cell m={['columns', 'first']}>
+                <bem.FormView__cell m='label'>
+                  {this.state.deployment__active ? t('Current version') :
+                    this.state.has_deployment ? t('Archived version') :
+                      t('Draft version')}
+                    <span>:&nbsp;</span>
+                    {dvcount > 0 ? `v${dvcount}` : ''}
                 </bem.FormView__cell>
-              }
-              {this.renderFormInfo()}
-              {this.state.summary && this.state.summary.languages && this.state.summary.languages[0] != null && 
-                this.renderFormLanguages()
-              }
-            </bem.FormView__cell>
-          </bem.FormView__row>
-          {this.state.deployed_versions.count > 0 &&
-            this.renderHistory()
-          }
-          {this.state.deployed_versions.count > 0 && this.state.deployment__active &&
-            this.renderCollectData()
-          }
+                <bem.FormView__cell>
+                  {this.renderButtons()}
+                </bem.FormView__cell>
+              </bem.FormView__cell>
+              <bem.FormView__cell m='box'>
+                {this.renderFormInfo()}
+              </bem.FormView__cell>
+            </bem.FormView__row>
+            {this.state.deployed_versions.count > 0 &&
+              this.renderHistory()
+            }
+            {this.state.deployed_versions.count > 0 &&
+              <Summary asset={this.state} />
+            }
+            {this.state.deployed_versions.count > 0 && this.state.deployment__active &&
+              this.renderCollectData()
+            }
+          </bem.FormView__column>
+          <bem.FormView__column m='right'>
+            <bem.FormView__row>
+              <bem.FormView__cell m='label'>
+                {t('Form details')}
+              </bem.FormView__cell>
+              <bem.FormView__cell m='box'>
+                {this.renderFormDetails()}
+              </bem.FormView__cell>
+            </bem.FormView__row>
+            {this.state.has_deployment &&
+              <bem.FormView__row>
+                <bem.FormView__cell m='label'>
+                  {t('Data')}
+                </bem.FormView__cell>
+                <bem.FormView__cell m='box'>
+                  {this.renderDataTabs()}
+                </bem.FormView__cell>
+              </bem.FormView__row>
+            }
+          </bem.FormView__column>
         </bem.FormView> 
       </DocumentTitle>
       );

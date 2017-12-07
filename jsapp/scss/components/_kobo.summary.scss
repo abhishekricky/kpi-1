@@ -38,13 +38,16 @@
   .form-view__group--submission-stats {
     padding: 30px;
     display: flex;
-    justify-content: space-between;
 
     .form-view__cell {
       background: #F8F8FA;
       padding: 20px;
       flex: 1;
-      margin: 0px 20px;
+      margin-right: 10px;
+
+      &:last-child {
+        margin-right: 0px;
+      }
     }
 
     .subs-graph-number {

@@ -32,12 +32,16 @@ class Summary extends React.Component {
     this.getLatestSubmissionTime();
     this.prepSubmissions();
   }
+  componentWillReceiveProps() {
+    this.getLatestSubmissionTime();
+    this.prepSubmissions();
+  }
   prepSubmissions() {
-    const thisWeekStart = moment().startOf('week');
-    const query = `query={"_submission_time": {"$gte":"${thisWeekStart.toISOString()}"}}&fields=["_id","_submission_time"]`;
+    const wkStart = moment().subtract(6, 'days');
+    const query = `query={"_submission_time": {"$gte":"${wkStart.toISOString()}"}}&fields=["_id","_submission_time"]`;
     dataInterface.getSubmissionsQuery(this.props.asset.uid, query).done((thisWeekSubs) => {
       var subsThisWeek = thisWeekSubs.length;
-      const lastWeekStart = thisWeekStart.subtract(7, 'days');
+      const lastWeekStart = moment().subtract(14, 'days');
       if (subsThisWeek)
         this.setState({submissionsChart: true});
 
@@ -46,8 +50,9 @@ class Summary extends React.Component {
         if (subsThisWeek > 0) {
           var subsPerDay = [0,0,0,0,0,0,0];
           thisWeekSubs.forEach(function(s, i){
-            var subDayofWeek = moment(s._submission_time).format('d');
-            subsPerDay[subDayofWeek] += 1;
+            var d = moment(s._submission_time);
+            var diff = d.diff(wkStart, 'days');
+            subsPerDay[diff] += 1;
           });
 
           Chart.defaults.global.elements.rectangle.backgroundColor = 'rgba(61, 194, 212, 0.6)';
@@ -55,13 +60,13 @@ class Summary extends React.Component {
             type: 'bar',
             data: {
                 labels: [
-                    thisWeekStart.format('ddd DD MMM'), 
-                    thisWeekStart.add(1, 'days').format('ddd DD MMM'), 
-                    thisWeekStart.add(2, 'days').format('ddd DD MMM'), 
-                    thisWeekStart.add(3, 'days').format('ddd DD MMM'), 
-                    thisWeekStart.add(4, 'days').format('ddd DD MMM'), 
-                    thisWeekStart.add(5, 'days').format('ddd DD MMM'), 
-                    thisWeekStart.add(6, 'days').format('ddd DD MMM'), 
+                    moment().subtract(6, 'days').format('ddd DD MMM'), 
+                    moment().subtract(5, 'days').format('ddd DD MMM'), 
+                    moment().subtract(4, 'days').format('ddd DD MMM'), 
+                    moment().subtract(3, 'days').format('ddd DD MMM'), 
+                    moment().subtract(2, 'days').format('ddd DD MMM'), 
+                    moment().subtract(1, 'days').format('ddd DD MMM'), 
+                    moment().format('ddd DD MMM'), 
                   ],
                 datasets: [{
                   data: subsPerDay,
@@ -106,7 +111,7 @@ class Summary extends React.Component {
   }
   renderSubmissionsGraph() {
     return (
-      <bem.FormView__row>
+      <bem.FormView__row m='summary-submissions'>
         <bem.FormView__cell m='label'>
           {t('Submissions')}
         </bem.FormView__cell>
@@ -119,11 +124,11 @@ class Summary extends React.Component {
           <bem.FormView__group m={['submission-stats']}>
             <bem.FormView__cell>
               <span className="subs-graph-number">{this.state.subsThisWeek}</span>
-              <bem.FormView__label>{t('This Week')}</bem.FormView__label>
+              <bem.FormView__label>{t('Past 7 Days')}</bem.FormView__label>
             </bem.FormView__cell>
             <bem.FormView__cell>
               <span className="subs-graph-number">{this.state.subsLastWeek}</span>
-              <bem.FormView__label>{t('Last week')}</bem.FormView__label>
+              <bem.FormView__label>{t('Previous 7 Days')}</bem.FormView__label>
             </bem.FormView__cell>
             <bem.FormView__cell>
               <span className="subs-graph-number">{this.props.asset.deployment__submission_count}</span>
@@ -144,7 +149,7 @@ class Summary extends React.Component {
       <DocumentTitle title={`${docTitle} | KoboToolbox`}>
         <bem.FormView m='summary'>
           {(asset.settings.country || asset.settings.sector || asset.settings.description) && 
-            <bem.FormView__row>
+            <bem.FormView__row m='summary-description'>
               <bem.FormView__cell m='label'>
                 {t('Description')}
               </bem.FormView__cell>
@@ -174,7 +179,7 @@ class Summary extends React.Component {
             </bem.FormView__row>
           }
 
-          <bem.FormView__row>
+          <bem.FormView__row m='summary-details'>
             <bem.FormView__cell m='label'>
               {t('Form details')}
             </bem.FormView__cell>
