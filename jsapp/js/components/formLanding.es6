@@ -43,6 +43,7 @@ export class FormLanding extends React.Component {
     this.getLatestSubmissionTime();
   }
   componentWillReceiveProps() {
+    this.getLatestSubmissionTime();
     this.setState({
         questionLanguageIndex: 0
       }
@@ -63,14 +64,25 @@ export class FormLanding extends React.Component {
     //   undeployedVersion = `(${t('undeployed')})`;
     //   dvcount = dvcount + 1;
     // }
+
     return (
         <bem.FormView__cell m={['columns', 'padding']}>
           <bem.FormView__cell>
-            {this.state.deployed_versions.count > 0 &&
+            {dvcount > 0 && 
               this.state.deployed_version_id != this.state.version_id && this.state.deployment__active && 
               <bem.FormView__cell m='warning'>
                 <i className="k-icon-alert" />
                 <span>{t('Your form has undeployed changes. If you want to make these changes public, you must deploy this form.')}</span>
+              </bem.FormView__cell>
+            }
+            {dvcount === 0 && 
+              <bem.FormView__cell m='draft-message'>
+                <span>{t('Use the "Deploy" button to publish this draft.')}</span>
+              </bem.FormView__cell>
+            }
+            {this.state.has_deployment && !this.state.deployment__active &&
+              <bem.FormView__cell m='archived-message'>
+                <span>{t('This project is currently unpublished. Click on "Redeploy" to re-publish it.')}</span>
               </bem.FormView__cell>
             }
           </bem.FormView__cell>
@@ -382,7 +394,11 @@ export class FormLanding extends React.Component {
     const fq = ['_id', '_submission_time'];
     const sort = [{id: '_id', desc: true}];
     dataInterface.getSubmissions(this.props.params.assetid, 1, 0, sort, fq).done((data) => {
-      this.setState({lastSubmission: data[0]['_submission_time']});
+      console.log(data.length);
+      if (data.length > 0)
+        this.setState({lastSubmission: data[0]['_submission_time']});
+      else
+        this.setState({lastSubmission: false});
     });
   }
   renderFormDetails () {
@@ -495,10 +511,9 @@ export class FormLanding extends React.Component {
             <bem.FormView__row>
               <bem.FormView__cell m={['columns', 'first']}>
                 <bem.FormView__cell m='label'>
-                  {this.state.deployment__active ? t('Current version') :
-                    this.state.has_deployment ? t('Archived version') :
+                  {this.state.deployment__active ? t('Current version') + ': ' :
+                    this.state.has_deployment ? t('Archived version') + ': ' :
                       t('Draft version')}
-                    <span>:&nbsp;</span>
                     {dvcount > 0 ? `v${dvcount}` : ''}
                 </bem.FormView__cell>
                 <bem.FormView__cell>
@@ -508,15 +523,54 @@ export class FormLanding extends React.Component {
               <bem.FormView__cell m='box'>
                 {this.renderFormInfo()}
               </bem.FormView__cell>
+              <bem.FormView__cell m={['box']}>
+                {(this.state.settings.country || this.state.settings.sector) && 
+                  <bem.FormView__group m={['items', 'description-cols']}>
+                    {this.state.settings.country && 
+                      <bem.FormView__cell>
+                        <bem.FormView__label m='country'>{t('Project country')}</bem.FormView__label>
+                        {this.state.settings.country.label}
+                      </bem.FormView__cell>
+                    }
+                    {this.state.settings.sector && 
+                      <bem.FormView__cell>
+                        <bem.FormView__label m='sector'>{t('Sector')}</bem.FormView__label>
+                        {this.state.settings.sector.label}
+                      </bem.FormView__cell>
+                    }
+                  </bem.FormView__group>
+                }
+                {this.state.settings.description && 
+                  <bem.FormView__cell m='description'>
+                    {this.state.settings.description}
+                  </bem.FormView__cell>
+                }
+              </bem.FormView__cell>
+
             </bem.FormView__row>
             {this.state.deployed_versions.count > 0 &&
               this.renderHistory()
             }
-            {this.state.deployed_versions.count > 0 &&
-              <Summary asset={this.state} />
-            }
             {this.state.deployed_versions.count > 0 && this.state.deployment__active &&
               this.renderCollectData()
+            }
+            {this.state.deployed_versions.count === 0 && !this.state.deployment__active &&
+              <bem.FormView__row>
+                <bem.FormView__cell m={['box','onboarding']}>
+                  {t('Once you publish your form, you will be able to: ')}
+                  <ul>
+                    <li>{t('collect data in a browser or in the Android app')}</li>
+                    <li>{t('review submissions at a glance')}</li>
+                    <li>{t('use reports and tables of your data')}</li>
+                    <li>{t('export your data')}</li>
+                    <li>{t('view submitted media in a gallery')}</li>
+                    <li>{t('and, if applicable, see your geolocated data in a map')}</li>
+                  </ul>
+                </bem.FormView__cell>
+              </bem.FormView__row>
+            }
+            {this.state.deployed_versions.count > 0 &&
+              <Summary asset={this.state} />
             }
           </bem.FormView__column>
           <bem.FormView__column m='right'>

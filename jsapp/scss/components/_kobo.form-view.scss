@@ -130,6 +130,7 @@
 
   &.historyHidden {
     margin-top: -15px;
+    margin-bottom: 20px;
   }
 
   &.historyHidden .form-view__cell--history-label,
@@ -323,6 +324,11 @@
     border-radius: 2px;
   }
 
+  &--draft-message,
+  &--archived-message {
+    padding-right: 20px;
+  }
+
   &--warning {
     padding: 10px;
     background: #F8F8F8;
@@ -383,6 +389,25 @@
       margin-top: 15px;
       border: 1px solid #DDD;
       font-size: 0.9em;
+    }
+  }
+
+  &--onboarding {
+    padding: 40px;
+    font-size: 15px;
+    opacity: 0.6;
+    border: 2px dashed $divider-color;
+    color: darken($layout-text-color, 10%);
+
+    ul {
+      list-style: bullet;
+      margin: 20px;
+
+      li {
+        margin-left: 20px;
+        list-style: disc;
+        margin-bottom: 10px;
+      }
     }
   }
 }
@@ -645,7 +670,7 @@
 .form-view--form {
   .form-view--summary {
     .form-view__row--summary-description {
-      margin-top: 0px;
+      display: none;
     }
 
     .form-view__row--summary-details {
