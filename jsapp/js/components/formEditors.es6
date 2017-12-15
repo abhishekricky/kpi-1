@@ -278,7 +278,7 @@ export class ProjectDownloads extends React.Component {
     var docTitle = this.props.asset.name || t('Untitled');
 
     return (
-      <DocumentTitle title={`${docTitle} | KoboToolbox`}>
+      <DocumentTitle title={`${docTitle} | Powered by Bizician`}>
       <bem.FormView__cell>
         <bem.FormModal__form onSubmit={this.handleSubmit}>
           {[
