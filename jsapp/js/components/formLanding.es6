@@ -258,8 +258,8 @@ export class FormLanding extends React.Component {
               { chosenMethod == 'android' &&
                 <a className="collect-link mdl-button mdl-button--colored" 
                    target="_blank" 
-                   href='https://play.google.com/store/apps/details?id=org.koboc.collect.android&hl=en'>
-                   {t('Download KoboCollect')}
+                   href='https://bizician.com'>
+                   {t('Download Sula Collect')}
                 </a>
               }
               {chosenMethod == 'iframe_url' &&
@@ -286,7 +286,7 @@ export class FormLanding extends React.Component {
                 <li>
                   {t('Install')}
                   &nbsp;
-                  <a href="https://play.google.com/store/apps/details?id=org.koboc.collect.android&hl=en" target="_blank">KoboCollect</a>
+                  <a href="http://bizician.com" target="_blank">Sula Collect</a>
                   &nbsp;
                   {t('on your Android device.')}
                 </li>
